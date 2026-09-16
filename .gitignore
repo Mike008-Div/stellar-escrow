@@ -1,0 +1,23 @@
+# Rust
+target/
+Cargo.lock
+
+# Node
+node_modules/
+dist/
+.next/
+.env.local
+.env
+
+# Secrets
+*.pem
+*.key
+deploy-mainnet.env
+deploy-testnet.env
+.last-deploy-*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
