@@ -137,6 +137,24 @@ fn refund_before_deadline_fails() {
 }
 
 #[test]
+fn refund_at_deadline_fails() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+    ctx.env.ledger().set_timestamp(FUTURE_DEADLINE);
+
+    let err = ctx.client.try_refund(&id).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::DeadlineNotPassed));
+}
+
+#[test]
 fn refund_after_deadline_returns_funds() {
     let ctx = setup();
     let id = ctx.client.create_escrow(
