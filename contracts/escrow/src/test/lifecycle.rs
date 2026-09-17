@@ -120,6 +120,24 @@ fn dispute_then_arbiter_resolves_for_freelancer() {
 }
 
 #[test]
+fn freelancer_can_raise_dispute() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    ctx.client.raise_dispute(&id, &ctx.freelancer);
+
+    assert_eq!(ctx.client.get_escrow(&id).status, EscrowStatus::Disputed);
+}
+
+#[test]
 fn refund_before_deadline_fails() {
     let ctx = setup();
     let id = ctx.client.create_escrow(
