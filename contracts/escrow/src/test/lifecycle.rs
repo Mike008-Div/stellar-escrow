@@ -91,6 +91,13 @@ fn fund_unknown_returns_not_found() {
 }
 
 #[test]
+fn get_unknown_returns_not_found() {
+    let ctx = setup();
+    let err = ctx.client.try_get_escrow(&999).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::EscrowNotFound));
+}
+
+#[test]
 fn dispute_then_arbiter_resolves_for_freelancer() {
     let ctx = setup();
     let id = ctx.client.create_escrow(
