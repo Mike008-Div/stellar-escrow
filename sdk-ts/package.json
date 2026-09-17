@@ -4,9 +4,10 @@
   "description": "TypeScript SDK for Stellar Escrow",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"no tests yet\" && exit 0"
+    "test": "node --experimental-strip-types --test src/*.test.ts"
   },
   "license": "MIT"
 }
