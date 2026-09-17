@@ -95,6 +95,40 @@ fn refund_before_deadline_fails() {
 }
 
 #[test]
+fn refund_after_deadline_callable_by_anyone() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    let token_client = token::Client::new(&ctx.env, &ctx.token);
+    let initial_client_balance = token_client.balance(&ctx.client_addr);
+
+    // Fast-forward ledger timestamp beyond deadline
+    use soroban_sdk::testutils::Ledger as _;
+    ctx.env.ledger().set_timestamp(FUTURE_DEADLINE + 100);
+
+    // Any caller (even unauthenticated / third-party) calls refund
+    ctx.client.refund(&id);
+
+    // Tokens refunded to client
+    assert_eq!(token_client.balance(&ctx.client_addr), initial_client_balance + 1_000);
+
+    let escrow = ctx.client.get_escrow(&id);
+    assert_eq!(escrow.status, EscrowStatus::Refunded);
+
+    // Repeated call fails with InvalidStatus
+    let err = ctx.client.try_refund(&id).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidStatus));
+}
+
+#[test]
 fn pause_blocks_actions_and_unpause_resumes() {
     let ctx = setup();
     let admin = soroban_sdk::Address::generate(&ctx.env);

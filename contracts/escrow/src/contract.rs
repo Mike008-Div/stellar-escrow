@@ -182,8 +182,11 @@ impl StellarEscrowContract {
         Ok(())
     }
 
-    /// Client refunds themselves after the deadline, if not released.
+    /// Refund escrow back to client after deadline has passed. Callable by anyone.
     pub fn refund(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
         bump_instance(&env);
 
         let mut escrow = load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
@@ -193,7 +196,6 @@ impl StellarEscrowContract {
         if env.ledger().timestamp() <= escrow.deadline {
             return Err(EscrowError::DeadlineNotPassed);
         }
-        escrow.client.require_auth();
 
         let contract_address = env.current_contract_address();
         let token_client = token::Client::new(&env, &escrow.token);
