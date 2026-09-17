@@ -175,6 +175,22 @@ fn dispute_rejects_non_party_raiser() {
 }
 
 #[test]
+fn release_before_funding_fails() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+
+    let err = ctx.client.try_release(&id).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidStatus));
+}
+
+#[test]
 fn refund_before_deadline_fails() {
     let ctx = setup();
     let id = ctx.client.create_escrow(
