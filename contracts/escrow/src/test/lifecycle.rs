@@ -1,4 +1,5 @@
 use soroban_sdk::token;
+use soroban_sdk::testutils::Ledger as _;
 
 use crate::errors::EscrowError;
 use crate::types::EscrowStatus;
@@ -109,4 +110,25 @@ fn refund_before_deadline_fails() {
 
     let err = ctx.client.try_refund(&id).unwrap_err();
     assert_eq!(err, Ok(EscrowError::DeadlineNotPassed));
+}
+
+#[test]
+fn refund_after_deadline_returns_funds() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+    ctx.env.ledger().set_timestamp(FUTURE_DEADLINE + 1);
+
+    ctx.client.refund(&id);
+
+    let token_client = token::Client::new(&ctx.env, &ctx.token);
+    assert_eq!(token_client.balance(&ctx.client_addr), 10_000);
+    assert_eq!(ctx.client.get_escrow(&id).status, EscrowStatus::Refunded);
 }
