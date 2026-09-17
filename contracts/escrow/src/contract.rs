@@ -141,6 +141,47 @@ impl StellarEscrowContract {
         Ok(())
     }
 
+    /// Client releases funds partially to freelancer and returns remaining balance to client.
+    pub fn partial_release(
+        env: Env,
+        escrow_id: u64,
+        freelancer_amount: i128,
+        client_amount: i128,
+    ) -> Result<(), EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
+        bump_instance(&env);
+
+        let mut escrow = load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+        if escrow.status != EscrowStatus::Funded {
+            return Err(EscrowError::InvalidStatus);
+        }
+        if freelancer_amount < 0 || client_amount < 0 {
+            return Err(EscrowError::InvalidAmount);
+        }
+        if freelancer_amount + client_amount != escrow.amount {
+            return Err(EscrowError::InvalidAmount);
+        }
+        escrow.client.require_auth();
+
+        let contract_address = env.current_contract_address();
+        let token_client = token::Client::new(&env, &escrow.token);
+
+        if freelancer_amount > 0 {
+            token_client.transfer(&contract_address, &escrow.freelancer, &freelancer_amount);
+        }
+        if client_amount > 0 {
+            token_client.transfer(&contract_address, &escrow.client, &client_amount);
+        }
+
+        escrow.status = EscrowStatus::Released;
+        store_escrow(&env, &escrow);
+
+        events::emit_partial_released(&env, escrow_id, freelancer_amount, client_amount);
+        Ok(())
+    }
+
     /// Client refunds themselves after the deadline, if not released.
     pub fn refund(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
         bump_instance(&env);

@@ -211,3 +211,47 @@ fn get_escrow_count_tracks_created_escrows() {
     assert_eq!(id2, 2);
     assert_eq!(ctx.client.get_escrow_count(), 2);
 }
+
+#[test]
+fn partial_release_happy_path() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    let token_client = token::Client::new(&ctx.env, &ctx.token);
+    let initial_client_balance = token_client.balance(&ctx.client_addr);
+
+    // Split: 700 to freelancer, 300 refunded to client
+    ctx.client.partial_release(&id, &700, &300);
+
+    assert_eq!(token_client.balance(&ctx.freelancer), 700);
+    assert_eq!(token_client.balance(&ctx.client_addr), initial_client_balance + 300);
+
+    let escrow = ctx.client.get_escrow(&id);
+    assert_eq!(escrow.status, EscrowStatus::Released);
+}
+
+#[test]
+fn partial_release_invalid_split_fails() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    // Split sum 600 + 300 = 900 != 1000
+    let err = ctx.client.try_partial_release(&id, &600, &300).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidAmount));
+}
