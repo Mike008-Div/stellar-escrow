@@ -13,4 +13,7 @@ pub enum EscrowError {
     InvalidStatus = 7,
     DeadlineNotPassed = 8,
     TransferFailed = 9,
+    Paused = 10,
+    NotAdmin = 11,
+    AdminAlreadySet = 12,
 }

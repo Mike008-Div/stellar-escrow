@@ -8,10 +8,8 @@ pub fn emit_created(env: &Env, id: u64, client: &Address, freelancer: &Address, 
 }
 
 pub fn emit_funded(env: &Env, id: u64, amount: i128) {
-    env.events().publish(
-        (symbol_short!("Escrow"), symbol_short!("Funded")),
-        (id, amount),
-    );
+    env.events()
+        .publish((symbol_short!("Escrow"), symbol_short!("Funded")), (id, amount));
 }
 
 pub fn emit_released(env: &Env, id: u64, freelancer: &Address, amount: i128) {
@@ -29,10 +27,8 @@ pub fn emit_refunded(env: &Env, id: u64, client: &Address, amount: i128) {
 }
 
 pub fn emit_disputed(env: &Env, id: u64, raised_by: &Address) {
-    env.events().publish(
-        (symbol_short!("Escrow"), symbol_short!("Disputed")),
-        (id, raised_by),
-    );
+    env.events()
+        .publish((symbol_short!("Escrow"), symbol_short!("Disputed")), (id, raised_by));
 }
 
 pub fn emit_resolved(env: &Env, id: u64, winner: &Address, amount: i128) {
@@ -40,4 +36,21 @@ pub fn emit_resolved(env: &Env, id: u64, winner: &Address, amount: i128) {
         (symbol_short!("Escrow"), symbol_short!("Resolved")),
         (id, winner, amount),
     );
+}
+
+pub fn emit_cancelled(env: &Env, id: u64, client: &Address) {
+    env.events()
+        .publish((symbol_short!("Escrow"), symbol_short!("Cancelled")), (id, client));
+}
+
+pub fn emit_partial_released(env: &Env, id: u64, freelancer_amount: i128, client_amount: i128) {
+    env.events().publish(
+        (symbol_short!("Escrow"), symbol_short!("PartRel")),
+        (id, freelancer_amount, client_amount),
+    );
+}
+
+pub fn emit_arbiter_updated(env: &Env, id: u64, new_arbiter: &Address) {
+    env.events()
+        .publish((symbol_short!("Escrow"), symbol_short!("ArbUpd")), (id, new_arbiter));
 }

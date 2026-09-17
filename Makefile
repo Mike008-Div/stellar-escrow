@@ -19,4 +19,7 @@ clippy:
 fmt:
 	cd contracts/escrow && cargo fmt --check
 
+verify:
+	bash scripts/verify-build.sh
+
 all: fmt clippy test build
