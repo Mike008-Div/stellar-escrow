@@ -3,9 +3,9 @@
 ## Repository Structure
 
 - `contracts/escrow/` — Soroban contract (Rust)
-- `sdk-ts/` — TypeScript SDK for frontend/backend integrators
-- `frontend/` — Next.js dashboard (client, freelancer, arbiter views)
-- `indexer/` — Event indexer into Postgres
+- `sdk-ts/` — TypeScript SDK scaffold for frontend/backend integrators
+- `frontend/` — Next.js dashboard scaffold (client, freelancer, arbiter views)
+- `indexer/` — Event indexer scaffold; Postgres persistence is planned
 - `scripts/` — Deploy and verify scripts
 - `docs/` — Documentation and specifications
 
@@ -29,9 +29,13 @@
 
 ## Component Interactions
 
-- **Frontend** ↔ **TypeScript SDK** ↔ **Soroban Contract**
+- **Planned:** **Frontend** ↔ **TypeScript SDK** ↔ **Soroban Contract**
 - **Indexer** ← **Contract Events** → **Postgres Database**
 - **Deployment Scripts** → **Stellar Testnet/Mainnet**
+
+The current frontend and SDK do not yet submit contract transactions. The indexer does not yet subscribe
+to events or persist records; those integrations should be added without changing the contract's state
+machine or event names.
 
 ## Technology Stack
 
