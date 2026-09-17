@@ -2,7 +2,7 @@ use soroban_sdk::{contract, contractimpl, token, Address, Env};
 
 use crate::errors::EscrowError;
 use crate::events;
-use crate::storage::{bump_instance, load_escrow, next_id, store_escrow};
+use crate::storage::{self, bump_instance, load_escrow, next_id, store_escrow};
 use crate::types::{Escrow, EscrowStatus};
 
 #[contract]
@@ -10,6 +10,31 @@ pub struct StellarEscrowContract;
 
 #[contractimpl]
 impl StellarEscrowContract {
+    /// Initialize the contract admin.
+    pub fn init_admin(env: Env, admin: Address) -> Result<(), EscrowError> {
+        bump_instance(&env);
+        if storage::get_admin(&env).is_some() {
+            return Err(EscrowError::AdminAlreadySet);
+        }
+        storage::set_admin(&env, &admin);
+        Ok(())
+    }
+
+    /// Toggle contract paused state. Only admin can toggle.
+    pub fn set_paused(env: Env, paused: bool) -> Result<(), EscrowError> {
+        bump_instance(&env);
+        let admin = storage::get_admin(&env).ok_or(EscrowError::NotAdmin)?;
+        admin.require_auth();
+        storage::set_paused(&env, paused);
+        Ok(())
+    }
+
+    /// Check if contract is paused.
+    pub fn is_paused(env: Env) -> bool {
+        bump_instance(&env);
+        storage::is_paused(&env)
+    }
+
     /// Create a new escrow. `client` must authorize.
     pub fn create_escrow(
         env: Env,
@@ -20,6 +45,9 @@ impl StellarEscrowContract {
         amount: i128,
         deadline: u64,
     ) -> Result<u64, EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
         client.require_auth();
         bump_instance(&env);
 
@@ -50,6 +78,9 @@ impl StellarEscrowContract {
 
     /// Client funds the escrow — moves tokens from client into the contract.
     pub fn fund_escrow(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
         bump_instance(&env);
 
         let mut escrow = load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;

@@ -1,4 +1,4 @@
-use soroban_sdk::token;
+use soroban_sdk::{testutils::Address as _, token};
 
 use crate::errors::EscrowError;
 use crate::types::EscrowStatus;
@@ -92,4 +92,57 @@ fn refund_before_deadline_fails() {
 
     let err = ctx.client.try_refund(&id).unwrap_err();
     assert_eq!(err, Ok(EscrowError::DeadlineNotPassed));
+}
+
+#[test]
+fn pause_blocks_actions_and_unpause_resumes() {
+    let ctx = setup();
+    let admin = soroban_sdk::Address::generate(&ctx.env);
+
+    // Initial state: not paused
+    assert!(!ctx.client.is_paused());
+
+    // Initialize admin
+    ctx.client.init_admin(&admin);
+
+    // Pause contract
+    ctx.client.set_paused(&true);
+    assert!(ctx.client.is_paused());
+
+    // Creating escrow when paused fails with Paused error
+    let err = ctx
+        .client
+        .try_create_escrow(
+            &ctx.client_addr,
+            &ctx.freelancer,
+            &ctx.arbiter,
+            &ctx.token,
+            &1_000,
+            &FUTURE_DEADLINE,
+        )
+        .unwrap_err();
+    assert_eq!(err, Ok(EscrowError::Paused));
+
+    // Unpause contract
+    ctx.client.set_paused(&false);
+    assert!(!ctx.client.is_paused());
+
+    // Now creation succeeds
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    assert_eq!(id, 1);
+}
+
+#[test]
+fn non_admin_cannot_set_pause() {
+    let ctx = setup();
+    // Setting pause without initializing admin returns NotAdmin
+    let err = ctx.client.try_set_paused(&true).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::NotAdmin));
 }

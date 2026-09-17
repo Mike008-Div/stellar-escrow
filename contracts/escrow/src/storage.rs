@@ -11,6 +11,24 @@ pub enum DataKey {
     Counter,
     Escrow(u64),
     AddressIndex(soroban_sdk::Address),
+    Admin,
+    Paused,
+}
+
+pub fn set_admin(env: &Env, admin: &soroban_sdk::Address) {
+    env.storage().instance().set(&DataKey::Admin, admin);
+}
+
+pub fn get_admin(env: &Env) -> Option<soroban_sdk::Address> {
+    env.storage().instance().get(&DataKey::Admin)
+}
+
+pub fn set_paused(env: &Env, paused: bool) {
+    env.storage().instance().set(&DataKey::Paused, &paused);
+}
+
+pub fn is_paused(env: &Env) -> bool {
+    env.storage().instance().get(&DataKey::Paused).unwrap_or(false)
 }
 
 pub fn bump_instance(env: &Env) {
