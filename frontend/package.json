@@ -2,11 +2,13 @@
   "name": "stellar-escrow-frontend",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --experimental-strip-types --test app/**/*.test.ts"
   },
   "license": "MIT"
 }
