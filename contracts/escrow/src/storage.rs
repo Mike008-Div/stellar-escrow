@@ -32,27 +32,18 @@ pub fn is_paused(env: &Env) -> bool {
 }
 
 pub fn bump_instance(env: &Env) {
-    env.storage()
-        .instance()
-        .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+    env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 pub fn next_id(env: &Env) -> u64 {
-    let current: u64 = env
-        .storage()
-        .instance()
-        .get(&DataKey::Counter)
-        .unwrap_or(0);
+    let current: u64 = env.storage().instance().get(&DataKey::Counter).unwrap_or(0);
     let next = current + 1;
     env.storage().instance().set(&DataKey::Counter, &next);
     next
 }
 
 pub fn get_escrow_count(env: &Env) -> u64 {
-    env.storage()
-        .instance()
-        .get(&DataKey::Counter)
-        .unwrap_or(0)
+    env.storage().instance().get(&DataKey::Counter).unwrap_or(0)
 }
 
 pub fn store_escrow(env: &Env, escrow: &Escrow) {
