@@ -10,10 +10,12 @@ import type {
   EscrowTransactionResult,
   ClientConfig,
 } from "./types.ts";
+import { resolveNetworkConfig, type NetworkInput } from "./network.ts";
 
 export type * from "./types.ts";
 export { EscrowStatus } from "./types.ts";
 export * from "./validation.ts";
+export * from "./network.ts";
 
 export const VERSION = "0.1.0";
 
@@ -22,14 +24,19 @@ export class StellarEscrowClient {
   public readonly rpcUrl: string;
   public readonly networkPassphrase: string;
 
-  constructor(config: ClientConfig) {
+  constructor(config: ClientConfig & { network?: NetworkInput }) {
     if (!config.contractId || typeof config.contractId !== "string") {
       throw new Error("Invalid contractId: contractId must be a non-empty string");
     }
+    const resolvedNetwork = resolveNetworkConfig(
+      config.network || {
+        rpcUrl: config.rpcUrl,
+        networkPassphrase: config.networkPassphrase,
+      }
+    );
     this.contractId = config.contractId;
-    this.rpcUrl = config.rpcUrl || "https://soroban-testnet.stellar.org";
-    this.networkPassphrase =
-      config.networkPassphrase || "Test SDF Network ; September 2015";
+    this.rpcUrl = resolvedNetwork.rpcUrl;
+    this.networkPassphrase = resolvedNetwork.networkPassphrase;
   }
 
   /**
