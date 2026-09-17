@@ -41,3 +41,10 @@ pub fn emit_resolved(env: &Env, id: u64, winner: &Address, amount: i128) {
         (id, winner, amount),
     );
 }
+
+pub fn emit_cancelled(env: &Env, id: u64, client: &Address) {
+    env.events().publish(
+        (symbol_short!("Escrow"), symbol_short!("Cancelled")),
+        (id, client),
+    );
+}

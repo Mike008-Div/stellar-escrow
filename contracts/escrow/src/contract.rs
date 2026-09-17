@@ -100,6 +100,26 @@ impl StellarEscrowContract {
         Ok(())
     }
 
+    /// Client cancels an unfunded escrow.
+    pub fn cancel_escrow(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
+        bump_instance(&env);
+
+        let mut escrow = load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+        if escrow.status != EscrowStatus::Created {
+            return Err(EscrowError::InvalidStatus);
+        }
+        escrow.client.require_auth();
+
+        escrow.status = EscrowStatus::Cancelled;
+        store_escrow(&env, &escrow);
+
+        events::emit_cancelled(&env, escrow_id, &escrow.client);
+        Ok(())
+    }
+
     /// Client releases funds to the freelancer.
     pub fn release(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
         bump_instance(&env);

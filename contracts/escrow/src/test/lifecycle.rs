@@ -146,3 +146,40 @@ fn non_admin_cannot_set_pause() {
     let err = ctx.client.try_set_paused(&true).unwrap_err();
     assert_eq!(err, Ok(EscrowError::NotAdmin));
 }
+
+#[test]
+fn cancel_unfunded_escrow_succeeds_and_updates_status() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    let escrow = ctx.client.get_escrow(&id);
+    assert_eq!(escrow.status, EscrowStatus::Created);
+
+    ctx.client.cancel_escrow(&id);
+
+    let cancelled_escrow = ctx.client.get_escrow(&id);
+    assert_eq!(cancelled_escrow.status, EscrowStatus::Cancelled);
+}
+
+#[test]
+fn cancel_funded_escrow_fails() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    let err = ctx.client.try_cancel_escrow(&id).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidStatus));
+}
