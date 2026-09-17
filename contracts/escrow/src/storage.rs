@@ -10,7 +10,6 @@ const TTL_EXTEND_TO: u32 = 17_280 * 90;
 pub enum DataKey {
     Counter,
     Escrow(u64),
-    AddressIndex(soroban_sdk::Address),
 }
 
 pub fn bump_instance(env: &Env) {
