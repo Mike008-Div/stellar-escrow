@@ -26,5 +26,7 @@ sdk-build:
 
 indexer-build:
 	cd indexer && npm run build
+verify:
+	bash scripts/verify-build.sh
 
 all: fmt clippy test build

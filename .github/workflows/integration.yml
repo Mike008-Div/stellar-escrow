@@ -1,0 +1,37 @@
+name: Testnet Integration Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Stellar Network'
+        required: true
+        default: 'testnet'
+  schedule:
+    # Run once a week on Sunday midnight to test testnet health
+    - cron: '0 0 * * 0'
+
+jobs:
+  testnet-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Stellar CLI
+        run: |
+          cargo install --locked stellar-cli --features opt || true
+
+      - name: Run Testnet Integration Flow
+        env:
+          STELLAR_SECRET_KEY: ${{ secrets.STELLAR_TESTNET_SECRET }}
+          STELLAR_SOURCE: ${{ secrets.STELLAR_TESTNET_ACCOUNT }}
+          STELLAR_NETWORK: ${{ github.event.inputs.network || 'testnet' }}
+        run: |
+          chmod +x scripts/integration-test.sh
+          ./scripts/integration-test.sh

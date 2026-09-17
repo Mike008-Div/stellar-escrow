@@ -9,4 +9,13 @@ pub enum EscrowError {
     InvalidDeadline = 3,
     InvalidStatus = 4,
     DeadlineNotPassed = 5,
+    NotClient = 4,
+    NotFreelancer = 5,
+    NotArbiter = 6,
+    InvalidStatus = 7,
+    DeadlineNotPassed = 8,
+    TransferFailed = 9,
+    Paused = 10,
+    NotAdmin = 11,
+    AdminAlreadySet = 12,
 }
