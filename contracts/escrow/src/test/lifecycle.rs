@@ -138,6 +138,25 @@ fn freelancer_can_raise_dispute() {
 }
 
 #[test]
+fn resolve_rejects_non_party_winner() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+    ctx.client.raise_dispute(&id, &ctx.client_addr);
+    let outsider = soroban_sdk::testutils::Address::generate(&ctx.env);
+
+    let err = ctx.client.try_resolve_dispute(&id, &outsider).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidStatus));
+}
+
+#[test]
 fn refund_before_deadline_fails() {
     let ctx = setup();
     let id = ctx.client.create_escrow(
