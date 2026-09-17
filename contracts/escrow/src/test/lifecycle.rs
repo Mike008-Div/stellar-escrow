@@ -132,3 +132,25 @@ fn refund_after_deadline_returns_funds() {
     assert_eq!(token_client.balance(&ctx.client_addr), 10_000);
     assert_eq!(ctx.client.get_escrow(&id).status, EscrowStatus::Refunded);
 }
+
+#[test]
+fn released_escrow_rejects_terminal_operations() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+    ctx.client.release(&id);
+
+    assert_eq!(ctx.client.try_refund(&id), Err(Ok(EscrowError::InvalidStatus)));
+    assert_eq!(
+        ctx.client
+            .try_raise_dispute(&id, &ctx.client_addr),
+        Err(Ok(EscrowError::InvalidStatus))
+    );
+}
