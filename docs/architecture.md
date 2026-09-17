@@ -27,6 +27,19 @@
 4. **Event Emission** → `events.rs` (emit relevant events)
 5. **State Persistence** → `storage.rs` (save updated state)
 
+## Escrow State Machine
+
+| Current state | Operation | Next state | Authorized party |
+|---|---|---|---|
+| Created | fund | Funded | Client |
+| Funded | release | Released | Client |
+| Funded | refund after deadline | Refunded | Client |
+| Funded | raise dispute | Disputed | Client or freelancer |
+| Disputed | resolve dispute | Resolved | Arbiter |
+
+Released, Refunded, and Resolved are terminal states. The contract rejects
+operations that do not match one of the transitions above.
+
 ## Component Interactions
 
 - **Planned:** **Frontend** ↔ **TypeScript SDK** ↔ **Soroban Contract**
