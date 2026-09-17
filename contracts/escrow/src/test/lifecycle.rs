@@ -341,3 +341,28 @@ fn update_arbiter_after_funding_fails() {
     let err = ctx.client.try_update_arbiter(&id, &new_arbiter).unwrap_err();
     assert_eq!(err, Ok(EscrowError::InvalidStatus));
 }
+
+#[test]
+fn get_escrow_lookup_existing_and_missing() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+
+    // Existing escrow lookup returns complete state
+    let escrow = ctx.client.get_escrow(&id);
+    assert_eq!(escrow.id, id);
+    assert_eq!(escrow.client, ctx.client_addr);
+    assert_eq!(escrow.freelancer, ctx.freelancer);
+    assert_eq!(escrow.amount, 1_000);
+    assert_eq!(escrow.status, EscrowStatus::Created);
+
+    // Missing escrow lookup returns EscrowNotFound
+    let err = ctx.client.try_get_escrow(&9999).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::EscrowNotFound));
+}

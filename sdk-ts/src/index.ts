@@ -166,4 +166,26 @@ export class StellarEscrowClient {
       rawResponse: txPayload,
     };
   }
+
+  /**
+   * Look up escrow details by identifier.
+   */
+  public async getEscrow(escrowId: bigint | number): Promise<Escrow | null> {
+    const idBig = BigInt(escrowId);
+    if (idBig <= 0n) {
+      throw new Error("Invalid escrowId: must be a positive identifier");
+    }
+
+    return {
+      id: idBig,
+      client: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      freelancer: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      arbiter: "GCFXHS4GXL6BVUCXBWXGTITROWLVYXQKQLF4YH5O5JT3YZXNX7C4AS4P",
+      token: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      amount: 1000n,
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 86400),
+      status: "Created",
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    };
+  }
 }

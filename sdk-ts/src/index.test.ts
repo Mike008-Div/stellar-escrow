@@ -98,4 +98,17 @@ describe("StellarEscrowClient", () => {
       assert.strictEqual(res.escrowId, 1n);
     });
   });
+
+  describe("getEscrow lookup by identifier", () => {
+    it("returns escrow record for valid identifier", async () => {
+      const escrow = await client.getEscrow(1n);
+      assert.ok(escrow);
+      assert.strictEqual(escrow?.id, 1n);
+      assert.strictEqual(escrow?.status, "Created");
+    });
+
+    it("rejects non-positive escrow identifier", async () => {
+      await assert.rejects(async () => client.getEscrow(0), /Invalid escrowId/);
+    });
+  });
 });
