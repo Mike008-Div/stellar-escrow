@@ -13,6 +13,7 @@ import type {
 
 export type * from "./types.ts";
 export { EscrowStatus } from "./types.ts";
+export * from "./validation.ts";
 
 export const VERSION = "0.1.0";
 
