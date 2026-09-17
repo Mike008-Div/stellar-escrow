@@ -67,6 +67,23 @@ fn create_rejects_past_deadline() {
 }
 
 #[test]
+fn create_rejects_deadline_at_current_timestamp() {
+    let ctx = setup();
+    let err = ctx
+        .client
+        .try_create_escrow(
+            &ctx.client_addr,
+            &ctx.freelancer,
+            &ctx.arbiter,
+            &ctx.token,
+            &1_000,
+            &NOW,
+        )
+        .unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidDeadline));
+}
+
+#[test]
 fn fund_unknown_returns_not_found() {
     let ctx = setup();
     let err = ctx.client.try_fund_escrow(&999).unwrap_err();
