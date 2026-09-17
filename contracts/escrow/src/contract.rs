@@ -214,4 +214,10 @@ impl StellarEscrowContract {
         bump_instance(&env);
         load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)
     }
+
+    /// Read-only getter for total count of escrows created.
+    pub fn get_escrow_count(env: Env) -> u64 {
+        bump_instance(&env);
+        storage::get_escrow_count(&env)
+    }
 }

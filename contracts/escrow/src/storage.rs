@@ -48,6 +48,13 @@ pub fn next_id(env: &Env) -> u64 {
     next
 }
 
+pub fn get_escrow_count(env: &Env) -> u64 {
+    env.storage()
+        .instance()
+        .get(&DataKey::Counter)
+        .unwrap_or(0)
+}
+
 pub fn store_escrow(env: &Env, escrow: &Escrow) {
     let key = DataKey::Escrow(escrow.id);
     env.storage().persistent().set(&key, escrow);

@@ -183,3 +183,31 @@ fn cancel_funded_escrow_fails() {
     let err = ctx.client.try_cancel_escrow(&id).unwrap_err();
     assert_eq!(err, Ok(EscrowError::InvalidStatus));
 }
+
+#[test]
+fn get_escrow_count_tracks_created_escrows() {
+    let ctx = setup();
+    assert_eq!(ctx.client.get_escrow_count(), 0);
+
+    let id1 = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    assert_eq!(id1, 1);
+    assert_eq!(ctx.client.get_escrow_count(), 1);
+
+    let id2 = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &2_000,
+        &FUTURE_DEADLINE,
+    );
+    assert_eq!(id2, 2);
+    assert_eq!(ctx.client.get_escrow_count(), 2);
+}
