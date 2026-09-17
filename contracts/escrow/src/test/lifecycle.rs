@@ -289,3 +289,55 @@ fn partial_release_invalid_split_fails() {
     let err = ctx.client.try_partial_release(&id, &600, &300).unwrap_err();
     assert_eq!(err, Ok(EscrowError::InvalidAmount));
 }
+
+#[test]
+fn update_arbiter_before_funding_succeeds_and_resolves_with_new_arbiter() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+
+    let new_arbiter = soroban_sdk::Address::generate(&ctx.env);
+
+    // Update arbiter while status is Created
+    ctx.client.update_arbiter(&id, &new_arbiter);
+
+    let escrow = ctx.client.get_escrow(&id);
+    assert_eq!(escrow.arbiter, new_arbiter);
+
+    // Fund escrow and raise dispute
+    ctx.client.fund_escrow(&id);
+    ctx.client.raise_dispute(&id, &ctx.client_addr);
+
+    // New arbiter resolves dispute
+    ctx.client.resolve_dispute(&id, &ctx.freelancer);
+
+    let token_client = token::Client::new(&ctx.env, &ctx.token);
+    assert_eq!(token_client.balance(&ctx.freelancer), 1_000);
+
+    let resolved_escrow = ctx.client.get_escrow(&id);
+    assert_eq!(resolved_escrow.status, EscrowStatus::Resolved);
+}
+
+#[test]
+fn update_arbiter_after_funding_fails() {
+    let ctx = setup();
+    let id = ctx.client.create_escrow(
+        &ctx.client_addr,
+        &ctx.freelancer,
+        &ctx.arbiter,
+        &ctx.token,
+        &1_000,
+        &FUTURE_DEADLINE,
+    );
+    ctx.client.fund_escrow(&id);
+
+    let new_arbiter = soroban_sdk::Address::generate(&ctx.env);
+    let err = ctx.client.try_update_arbiter(&id, &new_arbiter).unwrap_err();
+    assert_eq!(err, Ok(EscrowError::InvalidStatus));
+}

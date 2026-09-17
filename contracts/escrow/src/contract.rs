@@ -120,6 +120,26 @@ impl StellarEscrowContract {
         Ok(())
     }
 
+    /// Client updates the designated arbiter before the escrow is funded.
+    pub fn update_arbiter(env: Env, escrow_id: u64, new_arbiter: Address) -> Result<(), EscrowError> {
+        if storage::is_paused(&env) {
+            return Err(EscrowError::Paused);
+        }
+        bump_instance(&env);
+
+        let mut escrow = load_escrow(&env, escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+        if escrow.status != EscrowStatus::Created {
+            return Err(EscrowError::InvalidStatus);
+        }
+        escrow.client.require_auth();
+
+        escrow.arbiter = new_arbiter.clone();
+        store_escrow(&env, &escrow);
+
+        events::emit_arbiter_updated(&env, escrow_id, &new_arbiter);
+        Ok(())
+    }
+
     /// Client releases funds to the freelancer.
     pub fn release(env: Env, escrow_id: u64) -> Result<(), EscrowError> {
         bump_instance(&env);

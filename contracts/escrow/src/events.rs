@@ -49,3 +49,8 @@ pub fn emit_partial_released(env: &Env, id: u64, freelancer_amount: i128, client
         (id, freelancer_amount, client_amount),
     );
 }
+
+pub fn emit_arbiter_updated(env: &Env, id: u64, new_arbiter: &Address) {
+    env.events()
+        .publish((symbol_short!("Escrow"), symbol_short!("ArbUpd")), (id, new_arbiter));
+}
